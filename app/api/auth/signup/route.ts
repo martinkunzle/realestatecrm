@@ -13,14 +13,14 @@ export async function POST(request: Request) {
     email?: string;
     password?: string;
   };
-  const email = body.email?.trim().toLowerCase(),
-    password = body.password ?? "",
-    name = body.name?.trim() || email?.split("@")[0] || "Agent";
-  if (!email || !/^\S+@\S+\.\S+$/.test(email) || password.length < 10)
+  const name = body.name?.trim(),
+    email = body.email?.trim().toLowerCase(),
+    password = body.password ?? "";
+  if (!name || !email || !/^\S+@\S+\.\S+$/.test(email) || password.length < 10)
     return Response.json(
       {
         error:
-          "Enter a valid email and password of at least 10 characters.",
+          "Enter a name, valid email, and password of at least 10 characters.",
       },
       { status: 400 },
     );
