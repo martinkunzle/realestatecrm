@@ -1,8 +1,10 @@
 name: Verify CRM build
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,3 +17,8 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - name: Inspect build output
+        run: |
+          find dist -maxdepth 3 -type f -print | sort
+          echo "--- dist/server/wrangler.json ---"
+          cat dist/server/wrangler.json
