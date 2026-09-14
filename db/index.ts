@@ -28,8 +28,6 @@ export function ensureDatabase() {
 
 async function initializeDatabase() {
   const db = database();
-  const demoPasswordHash = await hashPassword("CloseKeyDemo2026!");
-  const trialEnd = new Date(Date.now() + 14 * 86400000).toISOString();
   await db.batch([
     db.prepare(`CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY NOT NULL,
@@ -126,7 +124,13 @@ async function initializeDatabase() {
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`),
     db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_owner_id ON subscriptions (owner_id)`),
-    db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_stripe_subscription ON subscriptions (stripe_subscription_id)`),
+    db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_stripe_subscription ON subscriptions (stripe_subscription_id)`)
+  ]);
+
+  await ensureContactsColumns(db);
+  const demoPasswordHash = await hashPassword("CloseKeyDemo2026!");
+  const trialEnd = new Date(Date.now() + 14 * 86400000).toISOString();
+  await db.batch([
     db.prepare(`INSERT OR IGNORE INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)`)
       .bind("demo-agent", "Martin Demo", "demo@closekeycrm.com", demoPasswordHash),
     db.prepare(`INSERT OR IGNORE INTO workspaces (id, owner_id, name, email, phone, team, market) VALUES (?, ?, ?, ?, ?, ?, ?)`)
@@ -150,4 +154,21 @@ async function initializeDatabase() {
     db.prepare(`INSERT OR IGNORE INTO subscriptions (id, owner_id, status, current_period_end) VALUES (?, ?, ?, ?)`)
       .bind(-1001, "demo-agent", "trialing", trialEnd)
   ]);
+}
+
+async function ensureContactsColumns(db: D1Database) {
+  const info = await db
+    .prepare("PRAGMA table_info(contacts)")
+    .all<{ name: string }>();
+  const columns = new Set(info.results.map((column) => column.name));
+
+  if (!columns.has("status")) {
+    await db.exec("ALTER TABLE contacts ADD COLUMN status TEXT NOT NULL DEFAULT 'New'");
+  }
+  if (!columns.has("source")) {
+    await db.exec("ALTER TABLE contacts ADD COLUMN source TEXT NOT NULL DEFAULT 'Manual'");
+  }
+  if (!columns.has("budget")) {
+    await db.exec("ALTER TABLE contacts ADD COLUMN budget INTEGER NOT NULL DEFAULT 0");
+  }
 }
