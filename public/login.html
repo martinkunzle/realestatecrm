@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Log in | CloseKey CRM</title>
+  <link rel="icon" href="/favicon.svg">
+  <style>
+    :root{color-scheme:dark;--gold:#d7a55a;--ink:#0a0a0b;--panel:#121316;--line:#292b30;--muted:#aaaeb7}
+    *{box-sizing:border-box}body{margin:0;background:var(--ink);color:#f7f7f5;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    a{color:inherit}.brand{position:fixed;top:30px;left:34px;text-decoration:none;font-weight:800;font-size:21px;display:flex;align-items:center;gap:10px}.brand span{width:34px;height:34px;border-radius:10px;background:var(--gold);display:grid;place-items:center;color:#111}
+    main{min-height:100vh;display:grid;place-items:center;padding:100px 24px 40px}.shell{width:min(920px,100%);display:grid;grid-template-columns:1fr 420px;border:1px solid var(--line);border-radius:24px;overflow:hidden;background:var(--panel);box-shadow:0 28px 80px #0008}
+    .copy{padding:58px;background:linear-gradient(145deg,#17191d,#0f1012)}.eyebrow{color:var(--gold);font-size:12px;letter-spacing:.15em;font-weight:800}.copy h1{font-size:44px;line-height:1.05;margin:18px 0}.copy>p:not(.eyebrow){color:var(--muted);line-height:1.7}.copy ul{list-style:none;padding:18px 0 0;margin:0;display:grid;gap:16px}.copy li{color:#e8e8e5}.copy li:before{content:"✓";color:var(--gold);font-weight:900;margin-right:10px}
+    .card{padding:48px 40px;background:#111215}.lock{width:46px;height:46px;border-radius:14px;background:#24201a;color:var(--gold);display:grid;place-items:center;font-size:21px}.card h2{font-size:28px;margin:22px 0 8px}.sub{color:var(--muted);margin:0 0 28px;line-height:1.5}
+    form{display:grid;gap:16px}label{font-size:13px;font-weight:700;display:grid;gap:8px}input{width:100%;border:1px solid #34363c;border-radius:10px;background:#0b0c0e;color:#fff;padding:13px 14px;font:inherit;outline:none}input:focus{border-color:var(--gold);box-shadow:0 0 0 3px #d7a55a22}
+    button{margin-top:4px;border:0;border-radius:10px;padding:14px 18px;background:var(--gold);color:#111;font-weight:850;font-size:15px;cursor:pointer}button:disabled{opacity:.65;cursor:wait}.error{display:none;color:#ff9e9e;background:#3a171a;border:1px solid #6b2a30;padding:11px;border-radius:9px;font-size:13px}.switch{text-align:center;color:var(--muted);font-size:14px;margin-top:24px}.switch a{color:var(--gold);font-weight:800}
+    @media(max-width:760px){.brand{position:absolute;top:22px;left:22px}.shell{grid-template-columns:1fr}.copy{display:none}.card{padding:38px 24px}main{padding:84px 16px 28px}}
+  </style>
+</head>
+<body>
+  <a class="brand" href="/"><span>⌂</span>CloseKey</a>
+  <main>
+    <section class="shell">
+      <div class="copy">
+        <p class="eyebrow">REAL ESTATE, ORGANIZED</p>
+        <h1 id="heroTitle">Welcome back.</h1>
+        <p id="heroText">Log in to manage your leads, follow-ups, deals, and commissions.</p>
+        <ul><li>Your data stays private</li><li>Works on desktop and mobile</li><li>14-day free trial</li></ul>
+      </div>
+      <div class="card">
+        <div class="lock">◆</div>
+        <h2 id="formTitle">Log in to CloseKey</h2>
+        <p class="sub" id="formText">Enter your account details.</p>
+        <form id="authForm">
+          <label id="nameLabel" hidden>Full name<input id="name" name="name" autocomplete="name"></label>
+          <label>Email<input name="email" type="email" autocomplete="email" required></label>
+          <label>Password<input name="password" type="password" minlength="10" autocomplete="current-password" required></label>
+          <div class="error" id="error"></div>
+          <button id="submitButton" type="submit">Log in →</button>
+        </form>
+        <p class="switch" id="switchText">New to CloseKey? <a href="/login?mode=signup">Start free trial</a></p>
+      </div>
+    </section>
+  </main>
+  <script>
+    const query=new URLSearchParams(location.search);
+    const signup=query.get("mode")==="signup";
+    const form=document.getElementById("authForm");
+    const error=document.getElementById("error");
+    const button=document.getElementById("submitButton");
+    if(signup){
+      document.title="Create account | CloseKey CRM";
+      document.getElementById("heroTitle").textContent="Start closing with clarity.";
+      document.getElementById("heroText").textContent="Create your private CRM workspace and try every feature free for 14 days.";
+      document.getElementById("formTitle").textContent="Create your account";
+      document.getElementById("formText").textContent="Start your free trial—no credit card required.";
+      document.getElementById("nameLabel").hidden=false;
+      document.getElementById("name").required=true;
+      button.textContent="Create account →";
+      document.getElementById("switchText").innerHTML='Already have an account? <a href="/login">Log in</a>';
+    }
+    form.addEventListener("submit",async event=>{
+      event.preventDefault();button.disabled=true;button.textContent="Please wait…";error.style.display="none";
+      try{
+        const response=await fetch("/api/auth/"+(signup?"signup":"login"),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.fromEntries(new FormData(form)))});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(data.error||"Login failed. Please try again.");
+        const returnTo=query.get("returnTo");
+        location.href=signup?"/onboarding":returnTo&&returnTo.startsWith("/")&&!returnTo.startsWith("//")?returnTo:"/dashboard";
+      }catch(problem){
+        error.textContent=problem.message||"Please try again.";error.style.display="block";button.disabled=false;button.textContent=signup?"Create account →":"Log in →";
+      }
+    });
+  </script>
+</body>
+</html>
