@@ -17,8 +17,5 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - name: Inspect build output
-        run: |
-          find dist -maxdepth 3 -type f -print | sort
-          echo "--- dist/server/wrangler.json ---"
-          cat dist/server/wrangler.json
+      - name: Validate Cloudflare deployment
+        run: npx wrangler deploy --dry-run --config wrangler.jsonc
