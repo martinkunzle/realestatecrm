@@ -1,9 +1,10 @@
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
-import { getDb } from "@/db";
+import { ensureDatabase, getDb } from "@/db";
 import { sessions, users } from "@/db/schema";
 import { hashToken, newSessionToken, verifyPassword } from "@/lib/auth-crypto";
 import { SESSION_COOKIE } from "@/app/chatgpt-auth";
+
 export async function POST(request: Request) {
   if (
     request.headers.get("origin") &&
@@ -14,7 +15,10 @@ export async function POST(request: Request) {
     email?: string;
     password?: string;
   };
-  const [user] = await getDb()
+
+  await ensureDatabase();
+  const db = getDb();
+  const [user] = await db
     .select()
     .from(users)
     .where(eq(users.email, body.email?.trim().toLowerCase() ?? ""))
@@ -26,7 +30,7 @@ export async function POST(request: Request) {
     );
   const token = newSessionToken(),
     expires = new Date(Date.now() + 30 * 86400000).toISOString();
-  await getDb()
+  await db
     .insert(sessions)
     .values({
       tokenHash: await hashToken(token),
