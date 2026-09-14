@@ -1,7 +1,7 @@
 import vinext from "vinext";
 import { defineConfig } from "vite";
 
-const placeholderDatabaseId = "00000000-0000-4000-8000-000000000000";
+const databaseId = "d1861f97-1817-4f65-9b37-0de19c97c400";
 
 export default defineConfig(async () => {
   process.env.WRANGLER_SEND_METRICS ??= "false";
@@ -20,7 +20,7 @@ export default defineConfig(async () => {
             {
               binding: "DB",
               database_name: "closekey-crm-db",
-              database_id: placeholderDatabaseId
+              database_id: databaseId
             }
           ]
         }
