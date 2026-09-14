@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
-import { getDb } from "@/db";
+import { ensureDatabase, getDb } from "@/db";
 import { sessions, users } from "@/db/schema";
 import { hashPassword, hashToken, newSessionToken } from "@/lib/auth-crypto";
 import { SESSION_COOKIE } from "@/app/chatgpt-auth";
@@ -24,6 +24,8 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
+
+  await ensureDatabase();
   const db = getDb();
   const [existing] = await db
     .select({ id: users.id })
