@@ -42,12 +42,6 @@ export default function AuthForm({
           : "Enter your account details."}
       </p>
       <form action={submit} className="auth-form">
-        {signup && (
-          <label>
-            Full name
-            <input name="name" autoComplete="name" required />
-          </label>
-        )}
         <label>
           Email
           <input name="email" type="email" autoComplete="email" required />
