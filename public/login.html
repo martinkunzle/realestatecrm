@@ -32,6 +32,7 @@
         <h2 id="formTitle">Log in to CloseKey</h2>
         <p class="sub" id="formText">Enter your account details.</p>
         <form id="authForm">
+          <label id="nameLabel" hidden>Full name<input id="name" name="name" autocomplete="name"></label>
           <label>Email<input name="email" type="email" autocomplete="email" required></label>
           <label>Password<input name="password" type="password" minlength="10" autocomplete="current-password" required></label>
           <div class="error" id="error"></div>
@@ -53,6 +54,8 @@
       document.getElementById("heroText").textContent="Create your private CRM workspace and try every feature free for 14 days.";
       document.getElementById("formTitle").textContent="Create your account";
       document.getElementById("formText").textContent="Start your free trial—no credit card required.";
+      document.getElementById("nameLabel").hidden=false;
+      document.getElementById("name").required=true;
       button.textContent="Create account →";
       document.getElementById("switchText").innerHTML='Already have an account? <a href="/login">Log in</a>';
     }
