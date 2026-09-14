@@ -15,6 +15,13 @@
     "directory": "dist/client",
     "binding": "ASSETS"
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "closekey-crm-db",
+      "database_id": "d1861f97-1817-4f65-9b37-0de19c97c400"
+    }
+  ],
   "vars": {
     "APP_URL": "https://realestatecrm.martin-kunzle.workers.dev"
   },
