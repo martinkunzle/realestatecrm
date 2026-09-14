@@ -1,21 +1,27 @@
 {
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
-  "rsc": true,
-  "tsx": true,
-  "tailwind": {
-    "config": "",
-    "css": "app/globals.css",
-    "baseColor": "neutral",
-    "cssVariables": true,
-    "prefix": ""
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "closekey-crm",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS"
   },
-  "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "closekey-crm-db",
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "vars": {
+    "APP_URL": "https://REPLACE_WITH_YOUR_DOMAIN",
+    "STRIPE_PRICE_ID": "price_REPLACE_ME"
   },
-  "registries": {}
+  "observability": {
+    "enabled": true
+  }
 }
