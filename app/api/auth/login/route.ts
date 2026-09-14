@@ -11,38 +11,66 @@ export async function POST(request: Request) {
     request.headers.get("origin") !== new URL(request.url).origin
   )
     return Response.json({ error: "Invalid request." }, { status: 403 });
+
   const body = (await request.json().catch(() => ({}))) as {
     email?: string;
     password?: string;
   };
 
-  await ensureDatabase();
+  try {
+    await ensureDatabase();
+  } catch (problem) {
+    console.error("LOGIN_DB_INIT", problem);
+    return Response.json(
+      { error: "Login service is initializing. Code: LOGIN_DB_INIT" },
+      { status: 503 },
+    );
+  }
+
   const db = getDb();
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, body.email?.trim().toLowerCase() ?? ""))
-    .limit(1);
+  let user;
+  try {
+    [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, body.email?.trim().toLowerCase() ?? ""))
+      .limit(1);
+  } catch (problem) {
+    console.error("LOGIN_DB_QUERY", problem);
+    return Response.json(
+      { error: "Login service is unavailable. Code: LOGIN_DB_QUERY" },
+      { status: 503 },
+    );
+  }
+
   if (!user || !(await verifyPassword(body.password ?? "", user.passwordHash)))
     return Response.json(
       { error: "Incorrect email or password." },
       { status: 401 },
     );
-  const token = newSessionToken(),
-    expires = new Date(Date.now() + 30 * 86400000).toISOString();
-  await db
-    .insert(sessions)
-    .values({
+
+  try {
+    const token = newSessionToken();
+    const expires = new Date(Date.now() + 30 * 86400000).toISOString();
+    await db.insert(sessions).values({
       tokenHash: await hashToken(token),
       userId: user.id,
       expiresAt: expires,
     });
-  (await cookies()).set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: new URL(request.url).protocol === "https:",
-    sameSite: "lax",
-    path: "/",
-    expires: new Date(expires),
-  });
+    (await cookies()).set(SESSION_COOKIE, token, {
+      httpOnly: true,
+      secure: new URL(request.url).protocol === "https:",
+      sameSite: "lax",
+      path: "/",
+      expires: new Date(expires),
+    });
+  } catch (problem) {
+    console.error("LOGIN_SESSION", problem);
+    return Response.json(
+      { error: "Could not create your session. Code: LOGIN_SESSION" },
+      { status: 503 },
+    );
+  }
+
   return Response.json({ authenticated: true });
 }
