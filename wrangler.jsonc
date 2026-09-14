@@ -5,7 +5,20 @@
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
   "no_bundle": true,
-  "assets": { "directory": "dist/client", "binding": "ASSETS" },
-  "vars": { "APP_URL": "https://realestatecrm.martin-kunzle.workers.dev" },
-  "observability": { "enabled": true }
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": ["**/*.js", "**/*.mjs"]
+    }
+  ],
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "APP_URL": "https://realestatecrm.martin-kunzle.workers.dev"
+  },
+  "observability": {
+    "enabled": true
+  }
 }
