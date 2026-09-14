@@ -11,9 +11,9 @@
     "build": "node scripts/run-framework.mjs build",
     "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
-    ,"db:migrate:remote": "wrangler d1 migrations apply closekey-crm-db --remote --config wrangler.jsonc"
-    ,"deploy:cloudflare": "npm run build && wrangler deploy --config wrangler.jsonc"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:remote": "wrangler d1 migrations apply closekey-crm-db --remote --config wrangler.jsonc",
+    "deploy:cloudflare": "npm run build && wrangler deploy --config wrangler.jsonc"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -69,17 +69,3 @@
   },
   "packageManager": "pnpm@11.25.0"
 }
-package.json
-pnpm-lock.yaml
-pnpm-workspace.yaml
-.npmrc
-vite.config.ts
-next.config.ts
-tsconfig.json
-postcss.config.mjs
-drizzle.config.ts
-scripts/
-public/
-hooks/
-lib/
-vendor/
