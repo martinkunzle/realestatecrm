@@ -1,26 +1,31 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "closekey-crm",
+  "name": "realestatecrm",
   "main": "dist/server/index.js",
   "compatibility_date": "2026-05-15",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "no_bundle": true,
+
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
   },
+
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "closekey-crm-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "database_id": "PASTE_YOUR_DATABASE_ID_HERE",
       "migrations_dir": "drizzle"
     }
   ],
+
   "vars": {
-    "APP_URL": "https://REPLACE_WITH_YOUR_DOMAIN",
-    "STRIPE_PRICE_ID": "price_REPLACE_ME"
+    "APP_URL": "https://realestatecrm.martin-kunzle.workers.dev"
   },
+
   "observability": {
     "enabled": true
   }
