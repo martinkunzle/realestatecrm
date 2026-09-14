@@ -1,0 +1,6 @@
+import { desc, eq } from "drizzle-orm";
+import { getDb } from "@/db";
+import { invoices } from "@/db/schema";
+import { getChatGPTUser } from "@/app/chatgpt-auth";
+export async function GET(){const user=await getChatGPTUser();if(!user)return Response.json({error:"Sign in required."},{status:401});try{return Response.json({invoices:await getDb().select().from(invoices).where(eq(invoices.ownerId,user.userId)).orderBy(desc(invoices.id))})}catch{return Response.json({error:"Invoices are temporarily unavailable."},{status:503})}}
+export async function POST(r:Request){const user=await getChatGPTUser();if(!user)return Response.json({error:"Sign in required."},{status:401});try{const b=await r.json() as {client?:string;service?:string;amount?:number;dueDate?:string};if(!b.client?.trim()||!b.service?.trim())return Response.json({error:"Client and service are required."},{status:400});const number=`INV-${Date.now().toString().slice(-6)}`;const [invoice]=await getDb().insert(invoices).values({ownerId:user.userId,number,client:b.client.trim(),service:b.service.trim(),amount:Number(b.amount)||0,dueDate:b.dueDate??"",status:"Draft"}).returning();return Response.json({invoice},{status:201})}catch{return Response.json({error:"Invoice could not be saved."},{status:503})}}

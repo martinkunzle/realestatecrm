@@ -1,0 +1,6 @@
+import { desc, eq } from "drizzle-orm";
+import { getDb } from "@/db";
+import { contacts } from "@/db/schema";
+import { getChatGPTUser } from "@/app/chatgpt-auth";
+export async function GET(){const user=await getChatGPTUser();if(!user)return Response.json({error:"Sign in required."},{status:401});try{return Response.json({contacts:await getDb().select().from(contacts).where(eq(contacts.ownerId,user.userId)).orderBy(desc(contacts.id))})}catch{return Response.json({error:"Contacts are temporarily unavailable."},{status:503})}}
+export async function POST(r:Request){const user=await getChatGPTUser();if(!user)return Response.json({error:"Sign in required."},{status:401});try{const b=await r.json() as {name?:string;email?:string;phone?:string;type?:string;status?:string;source?:string;budget?:number};if(!b.name?.trim()||!b.email?.trim())return Response.json({error:"Name and email are required."},{status:400});const [contact]=await getDb().insert(contacts).values({ownerId:user.userId,name:b.name.trim(),email:b.email.trim(),phone:b.phone?.trim()??"",type:b.type??"Buyer",status:b.status??"New",source:b.source?.trim()||"Manual",budget:Number(b.budget)||0}).returning();return Response.json({contact},{status:201})}catch{return Response.json({error:"Contact could not be saved."},{status:503})}}

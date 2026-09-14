@@ -1,0 +1,8 @@
+import { desc, eq, and } from "drizzle-orm";
+import { getDb } from "@/db";
+import { deals } from "@/db/schema";
+import { getChatGPTUser } from "@/app/chatgpt-auth";
+
+export async function GET(){const user=await getChatGPTUser();if(!user)return Response.json({error:"Sign in required."},{status:401});try{return Response.json({deals:await getDb().select().from(deals).where(eq(deals.ownerId,user.userId)).orderBy(desc(deals.id))})}catch{return Response.json({error:"Deals are temporarily unavailable."},{status:503})}}
+export async function POST(r:Request){const user=await getChatGPTUser();if(!user)return Response.json({error:"Sign in required."},{status:401});try{const b=await r.json() as {name?:string;client?:string;value?:number;stage?:string;temperature?:string;note?:string};if(!b.name?.trim())return Response.json({error:"A property or deal name is required."},{status:400});const [deal]=await getDb().insert(deals).values({ownerId:user.userId,name:b.name.trim(),client:b.client?.trim()??"",value:Number(b.value)||0,stage:b.stage??"New lead",temperature:b.temperature??"Warm",note:b.note?.trim()??""}).returning();return Response.json({deal},{status:201})}catch{return Response.json({error:"Deal could not be saved."},{status:503})}}
+export async function PATCH(r:Request){const user=await getChatGPTUser();if(!user)return Response.json({error:"Sign in required."},{status:401});try{const b=await r.json() as {id?:number;stage?:string};if(!b.id||!b.stage)return Response.json({error:"Deal and stage are required."},{status:400});await getDb().update(deals).set({stage:b.stage}).where(and(eq(deals.id,b.id),eq(deals.ownerId,user.userId)));return Response.json({updated:true})}catch{return Response.json({error:"Deal could not be updated."},{status:503})}}
