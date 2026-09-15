@@ -28,7 +28,8 @@ export function ensureDatabase() {
 
 async function initializeDatabase() {
   const db = database();
-  await db.batch([
+  try {
+    await db.batch([
     db.prepare(`CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
@@ -125,12 +126,26 @@ async function initializeDatabase() {
     )`),
     db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_owner_id ON subscriptions (owner_id)`),
     db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_stripe_subscription ON subscriptions (stripe_subscription_id)`)
-  ]);
+    ]);
+  } catch {
+    throw new Error("DB_SCHEMA");
+  }
 
-  await ensureContactsColumns(db);
-  const demoPasswordHash = await hashPassword("CloseKeyDemo2026!");
+  try {
+    await ensureContactsColumns(db);
+  } catch {
+    throw new Error("DB_CONTACTS_UPGRADE");
+  }
+
+  let demoPasswordHash: string;
+  try {
+    demoPasswordHash = await hashPassword("CloseKeyDemo2026!");
+  } catch {
+    throw new Error("DB_DEMO_PASSWORD");
+  }
   const trialEnd = new Date(Date.now() + 14 * 86400000).toISOString();
-  await db.batch([
+  try {
+    await db.batch([
     db.prepare(`INSERT OR IGNORE INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)`)
       .bind("demo-agent", "Martin Demo", "demo@closekeycrm.com", demoPasswordHash),
     db.prepare(`INSERT OR IGNORE INTO workspaces (id, owner_id, name, email, phone, team, market) VALUES (?, ?, ?, ?, ?, ?, ?)`)
@@ -153,7 +168,10 @@ async function initializeDatabase() {
       .bind(-1001, "demo-agent", "CK-1001", "Sofia Martinez", "Transaction coordination", 75000, "Draft", "2026-09-30"),
     db.prepare(`INSERT OR IGNORE INTO subscriptions (id, owner_id, status, current_period_end) VALUES (?, ?, ?, ?)`)
       .bind(-1001, "demo-agent", "trialing", trialEnd)
-  ]);
+    ]);
+  } catch {
+    throw new Error("DB_DEMO_SEED");
+  }
 }
 
 async function ensureContactsColumns(db: D1Database) {
