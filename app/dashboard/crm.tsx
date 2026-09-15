@@ -255,10 +255,11 @@ export default function CRMApp({
       notify("Opportunity added");
     } else notify(r.error || "Deal could not be saved");
   }
-  async function advanceDeal(d: Deal) {
-    const i = stages.indexOf(d.stage);
-    if (i < 0 || i === 4) return;
-    const stage = stages[i + 1];
+  async function moveDeal(d: Deal, direction: -1 | 1) {
+    const currentIndex = stages.indexOf(d.stage);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= stages.length) return;
+    const stage = stages[nextIndex];
     setDeals((o) => o.map((x) => (x.id === d.id ? { ...x, stage } : x)));
     const r = await fetch("/api/deals", {
       method: "PATCH",
@@ -450,7 +451,7 @@ export default function CRMApp({
               {active === "Pipeline" && (
                 <Pipeline
                   deals={deals}
-                  advance={advanceDeal}
+                  move={moveDeal}
                   open={() => setDealOpen(true)}
                 />
               )}{" "}
@@ -834,11 +835,11 @@ function Contacts({
 }
 function Pipeline({
   deals,
-  advance,
+  move,
   open,
 }: {
   deals: Deal[];
-  advance: (d: Deal) => void;
+  move: (d: Deal, direction: -1 | 1) => void;
   open: () => void;
 }) {
   return (
@@ -883,9 +884,28 @@ function Pipeline({
                   <strong>{money(d.value)}</strong>
                   <footer>
                     <span>{d.note || "No notes"}</span>
-                    {s !== "Closing" && (
-                      <button onClick={() => advance(d)}>→</button>
-                    )}
+                    <div className="deal-stage-controls">
+                      {s !== "New lead" && (
+                        <button
+                          type="button"
+                          aria-label="Move deal back one stage"
+                          title="Move back"
+                          onClick={() => move(d, -1)}
+                        >
+                          ←
+                        </button>
+                      )}
+                      {s !== "Closing" && (
+                        <button
+                          type="button"
+                          aria-label="Move deal forward one stage"
+                          title="Move forward"
+                          onClick={() => move(d, 1)}
+                        >
+                          →
+                        </button>
+                      )}
+                    </div>
                   </footer>
                 </article>
               ))}
