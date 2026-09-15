@@ -21,8 +21,18 @@ export async function POST(request: Request) {
     await ensureDatabase();
   } catch (problem) {
     console.error("LOGIN_DB_INIT", problem);
+    const allowedCodes = new Set([
+      "DB_SCHEMA",
+      "DB_CONTACTS_UPGRADE",
+      "DB_DEMO_PASSWORD",
+      "DB_DEMO_SEED",
+    ]);
+    const stage =
+      problem instanceof Error && allowedCodes.has(problem.message)
+        ? problem.message
+        : "LOGIN_DB_INIT";
     return Response.json(
-      { error: "Login service is initializing. Code: LOGIN_DB_INIT" },
+      { error: `Login service is initializing. Code: ${stage}` },
       { status: 503 },
     );
   }
