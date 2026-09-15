@@ -1,7 +1,6 @@
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
-import { hashPassword } from "@/lib/auth-crypto";
 
 let initialization: Promise<void> | undefined;
 
@@ -137,12 +136,10 @@ async function initializeDatabase() {
     throw new Error("DB_CONTACTS_UPGRADE");
   }
 
-  let demoPasswordHash: string;
-  try {
-    demoPasswordHash = await hashPassword("CloseKeyDemo2026!");
-  } catch {
-    throw new Error("DB_DEMO_PASSWORD");
-  }
+  // Precomputed PBKDF2 hash for the public demo account. Avoids expensive
+  // password derivation during first-request database initialization.
+  const demoPasswordHash =
+    "pbkdf2-sha256$100000$Q1JNRGVtb1NhbHQyMDI2IQ$iWwhkLrOx0eqpg3_eLjuD3OhrCgN99RgbNurKT1H91E";
   const trialEnd = new Date(Date.now() + 14 * 86400000).toISOString();
   try {
     await db.batch([
